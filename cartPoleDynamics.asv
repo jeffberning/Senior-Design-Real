@@ -23,7 +23,7 @@ dt = 0.0001; % 0.01 secs, also can be changed
 
 % let state be y = [x theta xdot thetadot]';
 in2met = 0.0254;
-x0 = .5*in2met; % initial horizontal position
+x0 = 1.5*in2met; % initial horizontal position
 xdot0 = 0; % initial horizontal velocity
 theta0 = 20*pi/180; % initial angle
 thetadot0 = 0; % initial angular velocity
@@ -54,8 +54,8 @@ thetaddotVec(1) = thetaddot0;
 l = params.l; mo = params.mo; ml = params.ml; g = params.g; 
 A = [0 0 1 0; 0 0 0 1 ; 0 g*ml/mo 0 0; 0 -(g*ml + g*mo)/(l*mo) 0 0];
 B = [0 0 1/mo -1/(l*mo)]';
-Q = [1000 0 0 0; 0 10 0 0; 0 0 1000 0; 0 0 0 10];
-R = .001;
+Q = [1000 0 0 0; 0 1 0 0; 0 0 1000 0; 0 0 0 1];
+R = 1;
 K = lqr(A,B,Q,R,0);
 for iCnt = 2:length(tVec)
     % Euler integration to get new values
@@ -112,19 +112,13 @@ end
 figure(2)
 hold on
 plot(tVec,xVec/in2met)
-xlabel('Time (s)')
+xlabel('Time')
 ylabel('Position (in)')
 figure(3)
 plot(tVec,thetaVec*180/pi)
 
-xlabel('Time (s)')
+xlabel('Time')
 ylabel('Angle (Degrees)')
-
-figure(4)
-
-plot(tVec,Fvec)
-xlabel('Time (s)')
-ylabel('Force (N)')
 
 
 
