@@ -14,18 +14,24 @@ Tau = [0;ml*g*l*sin(theta)];
 U = [F;0];
 qddot = simplify(Hinv*(U-C*[xdot;thetadot] - Tau));
 
+
+%% Load Control
+uVec = load('optimalControlFirst.mat');
+uVec = uVec.u_opt;
 %% Simulation
 params = systemParams();
 t0 = 0;
-t_end = 10; % 10 secs, can be changed
-dt = 0.0001; % 0.01 secs, also can be changed
+t_end = 50; % 10 secs, can be changed
+%dt = t_end/30;
+dt = 0.01; % 0.01 secs, also can be changed
 
 
 % let state be y = [x theta xdot thetadot]';
 in2met = 0.0254;
-x0 = .5*in2met; % initial horizontal position
+%x0 = -12*in2met; % initial horizontal position
+x0 = 0;
 xdot0 = 0; % initial horizontal velocity
-theta0 = 20*pi/180; % initial angle
+theta0 = pi/2; % initial angle
 thetadot0 = 0; % initial angular velocity
 y0 = [x0 theta0 xdot0 thetadot0]';
 F0 = 0; % initial force
@@ -63,8 +69,8 @@ for iCnt = 2:length(tVec)
     ydotCurrent = [xdotVec(iCnt-1) thetadotVec(iCnt-1) xddotVec(iCnt-1) thetaddotVec(iCnt-1)]';
     %[yNew] = eulerStep(yCurrent,ydotCurrent,dt);
     %Fvec(iCnt) = -30*yCurrent(3);
-   
-    Fvec(iCnt) = -K*yCurrent;
+   %Fvec(iCnt) = uVec(iCnt);
+    %Fvec(iCnt) = -K*yCurrent;
     [yNew] = RK4Step(yCurrent,ydotCurrent,dt,Fvec(iCnt));
     
     [xddotnew,thetaddotnew] =  eomCalcs(yNew,Fvec(iCnt));
@@ -80,7 +86,7 @@ end
 
 
 %% Plotting (Animation)
-animate = 0;
+animate = 1;
 if animate == 1
 figure(1)
 hold on
@@ -89,10 +95,14 @@ l = params.l;
 yCart = 0;
 xCart0 = xVec(1);
 cart = plot(xCart0,yCart,'kx');
-
+boxBottom = plot(xCart0 + [-.25 .25],yCart + [-.15 -.15],'k-','LineWidth',2);
+boxTop = plot(xCart0 + [-.25 .25],yCart + [.15 .15],'k-','LineWidth',2);
+boxLeft = plot(xCart0 + [-.25 -.25],yCart + [-.15 .15],'k-','LineWidth',2);
+boxRight = plot(xCart0 + [.25 .25],yCart + [-.15 .15],'k-','LineWidth',2);
 xLoad0 = xCart0 + l*sin(thetaVec(1));
 yLoad0 = yCart - l*cos(thetaVec(1));
-Load = plot(xLoad0,yLoad0,'rx');
+Load = plot(xLoad0,yLoad0,'r.','MarkerSize',30);
+pole = plot([xCart0 xLoad0],[yCart yLoad0],'k-','LineWidth',2);
 textTime = text(-2, 2.25, 'Time: 0.0 (s)','fontsize',16);
 for jCnt = 1:length(tVec) 
     xCart = xVec(jCnt);
@@ -102,12 +112,25 @@ for jCnt = 1:length(tVec)
     set(cart,'YData',yCart);
     set(Load,'XData',xLoad);
     set(Load,'YData',yLoad);
+    set(pole,'XData',[xCart xLoad])
+    set(pole,'YData',[yCart,yLoad])
+    set(boxBottom,'XData',xCart + [-.25 .25])
+    set(boxBottom,'YData',yCart + [-.15 -.15])
+    set(boxTop,'XData',xCart + [-.25 .25])
+    set(boxTop,'YData',yCart + [.15 .15])
+    set(boxLeft,'XData',xCart + [-.25 -.25])
+    set(boxLeft,'YData',yCart + [-.15 .15])
+    set(boxRight,'XData',xCart + [.25 .25])
+    set(boxRight,'YData',yCart + [-.15 .15])
     set(textTime,'string',['Time: ',num2str(tVec(jCnt)),' (s)'])
     drawnow
-    pause(0.00001) 
+    %pause(0.0001) 
 end
 
 end
+
+
+
 
 figure(2)
 hold on
